@@ -1,25 +1,11 @@
-#import required libraries
-import time
-import RPi.GPIO as GPIO 
-
-#variable decleration.Change this based on your system
-driverPUL=12
-driverDIR=18
-Steps = 200 # Do not change number of steps
-
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-GPIO.setup(driverPUL, GPIO.OUT)
-GPIO.setup(driverDIR, GPIO.OUT)
-
 class StepperMotor:
     def __init__(self, step_pin, direction_pin):
         self.step_pin = step_pin
         self.direction_pin = direction_pin
-        self.acceleration = 20 # Steps per second squared
-        self.max_velocity = 200000  # Steps per second
-        self.deceleration = 20 # Steps per second squared
-        self.current_velocity = 100 # Steps per second
+        self.acceleration = 20 # This is the rate of change in PWM signal frequency, therefore the Unit is [1/s or (Step/s)/Step]
+        self.max_velocity = 200000  # Pulse per second or [step/s]
+        self.deceleration = 20 # This is the rate of change in PWM signal frequency, therefore the Unit is [1/s or (Step/s)/Step]
+        self.current_velocity = 100 # Change based on your motor
         self. last_speed = None
 
         # Initialize GPIO
@@ -41,7 +27,7 @@ class StepperMotor:
         direction = GPIO.HIGH if steps > 0 else GPIO.LOW
 
         # Acceleration phase
-        steps_to_max_velocity =(self.max_velocity- self.current_velocity)/self.acceleration
+        steps_to_max_velocity =(self.max_velocity- self.current_velocity)/self.acceleration #[checking units: it is pulse or step ]
         self.last_speed = self.current_velocity + abs(steps)*self.acceleration
         
         if abs(steps) <= steps_to_max_velocity and steps>0:
@@ -67,7 +53,7 @@ class StepperMotor:
         current_velocity = self.current_velocity
         
         for i in range(int(abs(steps))):
-            delay = 1/current_velocity
+            delay = 1/current_velocity #provides the time duration for each step. So, the units for delay would be seconds per step (s/step)
             GPIO.output(self.step_pin, GPIO.HIGH)
             time.sleep(delay)
             GPIO.output(self.step_pin, GPIO.LOW)
